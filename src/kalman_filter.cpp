@@ -38,7 +38,7 @@ void KalmanFilter::Predict() {
 void KalmanFilter::Update(const VectorXd &z) {
 	VectorXd y = z - H_ * x_;
 	MatrixXd Ht = H_.transpose();
-	MatrixXd S = H_ * P_ * Ht + R;
+	MatrixXd S = H_ * P_ * Ht + R_;
 	MatrixXd K = P_ * Ht * S.inverse();
 	MatrixXd I = MatrixXd::Identity(4,4);
 
@@ -72,7 +72,7 @@ VectorXd KalmanFilter::polarToCartesian(const VectorXd &z) {
 	float py = rho * sin(phi);
 	VectorXd pos = VectorXd::Zero(2);
 	pos << px, py;
-	return ps;
+	return pos;
 }
 
 void KalmanFilter::UpdateEKF(const VectorXd &z) {
@@ -88,10 +88,10 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
 	} else if (y_phi > PI) {
 		y_phi -= adj_factor * 2. * PI;
 		y(1) = y_phi;
-	} else { continue; }
+	} 
 
 	MatrixXd Ht = H_.transpose();
-	MatrixXd S = H_ * P_ * Ht + R;
+	MatrixXd S = H_ * P_ * Ht + R_;
 	MatrixXd K = P_ * Ht * S.inverse();
 	MatrixXd I = MatrixXd::Identity(4,4);
 
