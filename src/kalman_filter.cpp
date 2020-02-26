@@ -58,7 +58,7 @@ VectorXd KalmanFilter::cartesianToPolar(const VectorXd &x, bool &reject) {
 	float vy = x(3);
 	// Construct polar coords
 	float rho = sqrt(px*px + py*py);
-	float phi = atan(px/py);
+	float phi = atan(py/px);
 	float rho_dot;
 	if (abs(rho) < EPSILON) {
 		std::cout << "Preventing division by tiny number in cartesianToPolar!" << std::endl;
