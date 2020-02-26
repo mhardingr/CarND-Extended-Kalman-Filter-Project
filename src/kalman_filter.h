@@ -64,7 +64,7 @@ class KalmanFilter {
   // measurement covariance matrix
   Eigen::MatrixXd R_;
   // "h(x)"
-  Eigen::VectorXd cartesianToPolar(const Eigen::VectorXd &x);
+  Eigen::VectorXd cartesianToPolar(const Eigen::VectorXd &x, bool &reject);
   // h(x)^-1
   Eigen::VectorXd polarToCartesian(const Eigen::VectorXd &z);
 };

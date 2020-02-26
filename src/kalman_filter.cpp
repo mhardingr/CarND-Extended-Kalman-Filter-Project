@@ -1,3 +1,4 @@
+#include <iostream>
 #include "kalman_filter.h"
 #include <cmath>
 
@@ -8,6 +9,9 @@ using std::atan;
 using std::sqrt;
 using std::sin;
 using std::cos;
+using std::abs;
+
+#define EPSILON 0.0001
 
 /* 
  * Please note that the Eigen library does not initialize 
@@ -47,7 +51,7 @@ void KalmanFilter::Update(const VectorXd &z) {
 	P_ = (I - K * H_) * P_;
 }
 
-VectorXd KalmanFilter::cartesianToPolar(const VectorXd &x) {
+VectorXd KalmanFilter::cartesianToPolar(const VectorXd &x, bool &reject) {
 	float px = x(0);
 	float py = x(1);
 	float vx = x(2);
@@ -55,7 +59,17 @@ VectorXd KalmanFilter::cartesianToPolar(const VectorXd &x) {
 	// Construct polar coords
 	float rho = sqrt(px*px + py*py);
 	float phi = atan(px/py);
-	float rho_dot = (px*vx+py*vy)/rho;
+	float rho_dot;
+	if (abs(rho) < EPSILON) {
+		std::cout << "Preventing division by tiny number in cartesianToPolar!" << std::endl;
+		rho = 0.0;
+		phi = 0.0;
+		rho_dot = 0.0;
+		reject = true;
+	} else {
+		rho_dot = (px*vx+py*vy)/rho;
+		reject = false;
+	}
 
 	VectorXd polar = VectorXd::Zero(3);
 	polar << rho, phi, rho_dot;
@@ -78,7 +92,13 @@ VectorXd KalmanFilter::polarToCartesian(const VectorXd &z) {
 void KalmanFilter::UpdateEKF(const VectorXd &z) {
 	// For EKF update, H_ represents the Jacobian of h(x)
 	// h(x) is used to compute y
-	VectorXd y = z - cartesianToPolar(x_);
+	bool reject = false;;
+	VectorXd h_x = cartesianToPolar(x_, reject);
+	if (reject) {
+		// Avoided dividing by 0, should reject this update
+		return;
+	}
+	VectorXd y = z - h_x;
 	// Adjust y's phi value to be within [-pi,pi]
 	float y_phi = y(1);
 	float adj_factor = ceil((PI - y_phi)/(2.*PI));

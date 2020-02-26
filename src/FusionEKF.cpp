@@ -9,6 +9,8 @@ using std::cout;
 using std::endl;
 using std::vector;
 
+#define MICOSEC_PER_SEC 1e6
+
 /**
  * Constructor.
  */
@@ -83,21 +85,21 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
   /**
    * Prediction
    */
-  long long dt = measurement_pack.timestamp_ - previous_timestamp_;
+  float dt_sec = (measurement_pack.timestamp_ - previous_timestamp_) / float(MICOSEC_PER_SEC);
 
   /**
    * Update the state transition matrix F according to the new elapsed time.
-   * Time is measured in seconds. TODO: Confirm?
+   * Time is measured in seconds.
    */
   ekf_.F_ = MatrixXd::Identity(4,4);
-  ekf_.F_(0,2) = dt;
-  ekf_.F_(1,3) = dt;  
+  ekf_.F_(0,2) = dt_sec;
+  ekf_.F_(1,3) = dt_sec;
   /**
    * Update the process noise covariance matrix.
   */
-  float dt2 = float(dt*dt);
-  float dt3 = dt2*float(dt)/2.;
-  float dt4 = dt3*float(dt)/2.;
+  float dt2 = float(dt_sec*dt_sec);
+  float dt3 = dt2*float(dt_sec)/2.;
+  float dt4 = dt3*float(dt_sec)/2.;
   ekf_.Q_ = MatrixXd::Zero(4,4);
   ekf_.Q_ << dt4*noise_ax_, 0, dt3*noise_ax_, 0,
 	  0, dt4*noise_ay_, 0, dt3*noise_ay_,
