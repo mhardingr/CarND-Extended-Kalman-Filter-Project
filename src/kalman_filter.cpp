@@ -102,7 +102,7 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
 	// Adjust y's phi value to be within [-pi,pi]
 	float y_phi = y(1);
 	float adj_factor = ceil((PI - y_phi)/(2.*PI));
-	if (y_phi < PI) {
+	if (y_phi < -PI) {
 		y_phi += adj_factor * 2. * PI;
 		y(1) = y_phi;
 	} else if (y_phi > PI) {
