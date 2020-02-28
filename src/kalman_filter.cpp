@@ -5,7 +5,7 @@
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
 using std::ceil;
-using std::atan;
+using std::atan2;
 using std::sqrt;
 using std::sin;
 using std::cos;
@@ -58,7 +58,7 @@ VectorXd KalmanFilter::cartesianToPolar(const VectorXd &x, bool &reject) {
 	float vy = x(3);
 	// Construct polar coords
 	float rho = sqrt(px*px + py*py);
-	float phi = atan(py/px);
+	float phi = atan2(py, px);
 	float rho_dot;
 	if (abs(rho) < EPSILON) {
 		std::cout << "Preventing division by tiny number in cartesianToPolar!" << std::endl;
@@ -101,14 +101,9 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
 	VectorXd y = z - h_x;
 	// Adjust y's phi value to be within [-pi,pi]
 	float y_phi = y(1);
-	float adj_factor = ceil((PI - y_phi)/(2.*PI));
-	if (y_phi < -PI) {
-		y_phi += adj_factor * 2. * PI;
-		y(1) = y_phi;
-	} else if (y_phi > PI) {
-		y_phi -= adj_factor * 2. * PI;
-		y(1) = y_phi;
-	} 
+	while (y_phi < -PI) { y_phi += 2.0*PI; }
+	while (y_phi > PI) { y_phi -= 2.0*PI; }
+	y(1) = y_phi;
 
 	MatrixXd Ht = H_.transpose();
 	MatrixXd S = H_ * P_ * Ht + R_;
